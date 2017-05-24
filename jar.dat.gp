@@ -5,7 +5,7 @@ set terminal png size 1300,600
 set xtics rotate by 90
 set xtics offset 0,-5,0
 set bmargin 10
-set datafile separator "\t"
+set datafile separator ","
 set xdata time
 set timefmt "%Y/%m/%d"
 set format x "%Y/%m/%d"
