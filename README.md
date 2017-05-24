@@ -13,6 +13,14 @@
 >  氣
 >  : *ki - spirit*
 
+
+aiki.go functionality:
+
+ - Pretend to be a SSH service.
+ - Bots will try to log in with a username and password.
+ - Automatically try to log in to the attacking system's SSH service using the same username and password.
+
+
 For the complete background story to aiki.go, please see the
 [European Cyber Security Perspectives 2017, page 28-31](https://corporate.kpn.com/web/file?uuid=19ded687-0a42-469d-93b1-6f955de73f95&owner=9ec5bf96-ba39-4279-b0ea-370b7cd47698&contentid=5406).
 
@@ -96,10 +104,10 @@ Last but not least, what are the **real username/password combinations** used ou
 Below is a list of user/password combinations which gave access to the
 devices attacking me. Please keep in mind that some systems will allow you to log
 in with just about any username and/or password (mostly badly configured open
-source media centers). I don't believe there are many honeypots amongst these,
-unless the owners allow their honeypots to attack others without impunity on the
-internet. I have added a file which can perhaps be useful during Red/Blueteam
-exercises and in other tooling: [user+pass.txt (tab separated, unix lines)](user+pass.txt)
+source media centers). I don't believe there are many honeypots polluting the results,
+unless the owners allow their honeypots to attack others on the internet without impunity.
+ I have added a file which can perhaps be useful during Red/Blueteam
+exercises or in other tooling: [user+pass.txt (tab separated, unix lines)](user+pass.txt)
 
 ```
 ⠠⠵ sqlite3 alltraps.db "select count(distinct ip+pass+user) as total,user,pass
@@ -221,7 +229,7 @@ my aiki traps. I skipped any Tor exit nodes (based on a
 by @jgamblin ([Jerry Gamblin](https://twitter.com/JGamblin)) during his
 [investigation](https://jerrygamblin.com/2016/12/30/grizzly-steppe-ip-and-hash-analysis/)).
 I solely looked at the systems which were not (immediately identifiable as a) tor
-exit node. In total my honeypots were attacked by 11 IP addresses listed in the JAR release.
+exit node. In total my honeypots were attacked by 11 non-Tor IP addresses listed in the JAR release.
 
 ```sql
 ⠠⠵ sqlite alltraps.db 'select distinct(ip) from jarresults'
@@ -286,7 +294,7 @@ and state = 'attempt:' group by user,pass order by cnt desc;
 
 Although I think all of this is rather disappointing, perhaps someone with more
 insight into what is running behind these IPs can glean something from the pattern
-of attacks over time, so this is what I have:
+of attacks over time. So this is what I have:
 
 <img src="jarattempts.png" />
 
