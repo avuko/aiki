@@ -228,7 +228,7 @@ my aiki traps. I skipped any Tor exit nodes (based on a
 [list](https://docs.google.com/spreadsheets/d/1wJkecEHnNfOr7AOvdh1XPJQv43rps0cpVfcJVubmWWU/pubhtml)
 by @jgamblin ([Jerry Gamblin](https://twitter.com/JGamblin)) during his
 [investigation](https://jerrygamblin.com/2016/12/30/grizzly-steppe-ip-and-hash-analysis/)).
-I solely looked at the systems which were not (immediately identifiable as a) tor
+I solely looked at the systems which were not (immediately identifiable as) a tor
 exit node. In total my honeypots were attacked by 11 non-Tor IP addresses listed in the JAR release.
 
 ```sql
@@ -370,8 +370,8 @@ do not respect the maxTries option:
 ```
 
 
-The other was a patch the ssh client in go, because ubiquity devices run with
-terribly bad cypher suites, which prevented me from logging in:
+The other was a patch to the ssh client in go, because ubiquity devices run with
+terribly bad cipher suites, which prevented me from logging in:
 
 ```diff
  var supportedCiphers = []string{
