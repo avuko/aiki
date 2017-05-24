@@ -14,21 +14,21 @@
 >  : *ki - spirit*
 
 For the complete background story to aiki.go, please see the
-[European Cyber Security Perspectives 2017, page 28-31](https://corporate.kpn.com/web/file?uuid=19ded687-0a42-469d-93b1-6f955de73f95&owner=9ec5bf96-ba39-4279-b0ea-370b7cd47698&contentid=5406):
+[European Cyber Security Perspectives 2017, page 28-31](https://corporate.kpn.com/web/file?uuid=19ded687-0a42-469d-93b1-6f955de73f95&owner=9ec5bf96-ba39-4279-b0ea-370b7cd47698&contentid=5406).
 
 I have also hosted my article in the ECSP 2017 here for convenience:
-
-[My First Golang Project](my-first-golang-project-ecsp-2017.pdf)
+[My First Golang Project](my-first-golang-project-ecsp-2017.pdf).
 
 
 # aiki analysis
 
-I have worked out some of the results of a couple of months running `aiki.go`.
-Along the way I added traps (for a total of 6) and improved the code, which crashed often in the
-early days. When it comes to "systems owned per month", only the date range from
-2017/02-2017/05/09 is somewhat representative.
+I analysed the results of about 8 months of running `aiki.go`.
+During this time period I kept improving the code -which crashed often in the
+early days- and added traps for a total of 6.
+Because of all this, when it comes to "systems owned per month", only the date
+range from 2017/02-2017/05/09 is somewhat representative.
 
-So, first of all, from 2016/09/13 to 2017/05/09 (about 8 months), how many
+So, first of all, from 2016/09/13 to 2017/05/09, how many
 systems could I have possibly taken control over? A simple query shows the
 (to me rather shocking) answer: **I could have hijacked 2541 systems**, ranging from servers to
 IP camera's and Network Attached Storage (NAS) devices
@@ -39,10 +39,10 @@ select count(distinct ip) from alltraps where state = 'success:';
 2541
 ```
 
-Another interesting dataset is the number of successful aiki's per day. Please
-do not base too many conclusions on this: crashing daemons, running out
-of open files and stupid bugs had a disproportionately large negative impact on
-the results.
+Another interesting dataset is the number of successful aiki's per day. Again,
+I cannot draw too many conclusions based on this: crashing daemons, running out
+of the maximum number of open files allowed and other bugs had a disproportionately
+negative impact on the results.
 
 ```
 sqlite3 alltraps.db "select count(distinct(ip)) as total,date from alltraps \
@@ -91,9 +91,9 @@ sqlite3 alltraps.db "select count(distinct(ip)) as total,date from alltraps \
 9|2016/10/30	1|2016/12/13	4|2017/02/10	18|2017/03/29	10|2017/05/09
 ```
 
-Last but not least, what are the real world username/password combo's out there?
+Last but not least, what are the **real username/password combinations** used out there?
 
-Well, below is a list of user/password combinations which gave access to the
+Below is a list of user/password combinations which gave access to the
 devices attacking me. Please keep in mind that some systems will allow you to log
 in with just about any username and/or password (mostly badly configured open
 source media centers). I don't believe there are many honeypots amongst these,
@@ -213,16 +213,15 @@ exercises and in other tooling: [user+pass.txt (tab separated, unix lines)](user
 
 ## JAR-16-20296
 
-October 7, 2016 the DHS and DNI released the [GRIZZLY STEPPE](https://www.us-cert.gov/security-publications/GRIZZLY-STEPPE-Russian-Malicious-Cyber-Activity)
+On October 7, 2016 the DHS and DNI released the [GRIZZLY STEPPE](https://www.us-cert.gov/security-publications/GRIZZLY-STEPPE-Russian-Malicious-Cyber-Activity)
 report documenting "Russian malicious cyber activity".
 Interestingly, I actually had a number of IP addresses contained in the JAR CSV attacking
-my aiki traps. Working from a
-[Google doc](https://docs.google.com/spreadsheets/d/1wJkecEHnNfOr7AOvdh1XPJQv43rps0cpVfcJVubmWWU/pubhtml)
-with JAR IPs vs TOR exit nodes
-included in the list by @jgamblin [Jerry Gamblin](https://twitter.com/JGamblin)
-[Grizzly Steppe IP and hash analysis](https://jerrygamblin.com/2016/12/30/grizzly-steppe-ip-and-hash-analysis/)
+my aiki traps. I skipped any Tor exit nodes (based on a
+[list](https://docs.google.com/spreadsheets/d/1wJkecEHnNfOr7AOvdh1XPJQv43rps0cpVfcJVubmWWU/pubhtml)
+by @jgamblin ([Jerry Gamblin](https://twitter.com/JGamblin)) during his
+[investigation](https://jerrygamblin.com/2016/12/30/grizzly-steppe-ip-and-hash-analysis/)).
 I solely looked at the systems which were not (immediately identifiable as a) tor
-exit node. In total I was attacked by 11 IP addresses listed in the JAR release.
+exit node. In total my honeypots were attacked by 11 IP addresses listed in the JAR release.
 
 ```sql
 ⠠⠵ sqlite alltraps.db 'select distinct(ip) from jarresults'
@@ -239,13 +238,15 @@ exit node. In total I was attacked by 11 IP addresses listed in the JAR release.
 46.166.190.223
 ```
 
-I could not resist checking whether I owned any of these infamous systems.
+I could not resist checking whether I *pwnd* any of these infamous systems.
 I found one IP address from the JAR list for which I have credentials.
-I'm not going to disclose the IP address (although a smart cookie can probably work it out).
-Shodan.io and I agree: this is not a very sexy Russian jumpbox.
+I'm not going to disclose the IP address (although a smart cookie can probably work it out)
+but what I can say is this: Both Shodan.io and I agree that this is not a very sexy Russian jumpbox.
 This is a piece of badly configured webmin/cacti nightmare
 haunting the interwebs. Bad guys of all types will probably have repurposed it
-multiple times to do their bidding.  So, was it doing anything which makes me
+multiple times to do their bidding.
+
+Having said that, was it doing anything which makes me
 think the Russians were using it to scan the traps? Absolutely not.
 
 ```
@@ -283,8 +284,9 @@ and state = 'attempt:' group by user,pass order by cnt desc;
 31	root	xmhdipc	SSH-2.0-sshlib-0.1
 ```
 
-Having said that, perhaps someone with more insight into what is running behind these IPs can glean
-something from the pattern of attacks over time:
+Although I think all of this is rather disappointing, perhaps someone with more
+insight into what is running behind these IPs can glean something from the pattern
+of attacks over time, so this is what I have:
 
 <img src="jarattempts.png" />
 
