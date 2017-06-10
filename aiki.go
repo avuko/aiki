@@ -36,8 +36,9 @@ import (
 	"golang.org/x/crypto/ssh"
 	"io"
 	"log"
-	"log/syslog"
+	// "log/syslog"
 	"net"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -50,12 +51,13 @@ import (
 
 func init() {
 	// Logging into syslog instead of the stderr
-	logwriter, e := syslog.New(syslog.LOG_NOTICE, "aiki")
-	if e == nil {
+	//logwriter, e := syslog.New(syslog.LOG_NOTICE, "aiki")
+	// if e == nil {
         // disable double timestamping into syslog
-        log.SetFlags(0)
-        log.SetOutput(logwriter)
-     }
+        // log.SetFlags(0)
+        // log.SetOutput(logwriter)
+        log.SetOutput(os.Stdout)
+     // }
 }
 
 // from https://raw.githubusercontent.com/golang-samples/cipher/master/crypto/rsa_keypair.go
@@ -84,7 +86,7 @@ func buildkeys() (priv_pem []byte) {
 	// Resultant private key in PEM format.
 	// priv_pem string
 	priv_pem = []byte(string(pem.EncodeToMemory(&priv_blk)))
-	log.Printf("info:|Generated a transient SSH private key")
+	log.Printf("info:\tGenerated a transient SSH private key")
 	return
 
 }
@@ -95,7 +97,7 @@ func unguessable() (username string, password string) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
-		log.Printf("error:|%v", err)
+		log.Printf("error:\t%v", err)
 		return
 	}
 	salt1 := strconv.FormatInt(time.Now().UTC().UnixNano(), 16)
@@ -117,35 +119,35 @@ func aiki(ip string, gebruiker string, wachtwoord string) {
 	sshConfig := &ssh.ClientConfig{
 		User: string(gebruiker),
 		Auth: []ssh.AuthMethod{ssh.Password(string(wachtwoord))},
-		ClientVersion: "SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.1",
+		ClientVersion: "SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.2",
 	}
 	connection, err := ssh.Dial("tcp", remoteaddress[0]+":22", sshConfig)
 	// serverversion := string(connection.ServerVersion())
 	if err != nil {
-		log.Printf("fail:|%s|%s|%s|%s", ip, gebruiker, string(wachtwoord), err)
+		log.Printf("fail:\t%s\t%s\t%s\t%s", ip ,err ,gebruiker, string(wachtwoord))
 		return
 	}
-	log.Printf("success:|%s|%s|%s", ip, gebruiker, string(wachtwoord))
+	log.Printf("success:\t%s\t%s\t%s", ip, gebruiker, string(wachtwoord))
 	connection.Close() // Kill connection after success.
 	return
 }
 
 func main() {
-	const portnumber int = 2222
+	const portnumber int = 22
 	username, password := unguessable()
-	log.Printf("info:|username is %s , password is %s", username, password)
+	log.Printf("info:\tusername is %s , password is %s", username, password)
 
 	config := &ssh.ServerConfig{
 		//Define a function to run when a client attempts a password login
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
 			// XXX this is where the magic happens
-			log.Printf("attempt:|%s|%s|%s|%s", c.RemoteAddr().String(),
-				c.User(), string(pass), string(c.ClientVersion()))
+			log.Printf("attempt:\t%s\t%s\t%s\t%s", c.RemoteAddr().String(),
+				string(c.ClientVersion()), c.User(), string(pass))
 			// go do the aiki
 			go aiki(c.RemoteAddr().String(), c.User(), string(pass))
 			// server code
 			// We use long random username and pass here. for testing,
-			// see the 'info:|' line in std.err
+			// see the 'info:\t' line in std.err
 			if c.User() == username && string(pass) == password {
 				return nil, nil
 			}
@@ -167,14 +169,14 @@ func main() {
 	// Once a ServerConfig has been configured, connections can be accepted.
 	// listenTCP only accepts a net.TCPAddr, not a string like listen does.
 	// laddr := net.TCPAddr{IP: net.IPv4(0, 0, 0, 0), Port: portnumber} // Port == 0 - free port
-	laddr := net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: portnumber} // Port == 0 - free port
+	laddr := net.TCPAddr{IP: net.IPv4(0, 0, 0, 0), Port: portnumber} // Port == 0 - free port
 	listener, err := net.ListenTCP("tcp", &laddr)
 	if err != nil {
-		log.Fatalf("error:|sshd failed to listen on port %d|%v", portnumber, err)
+		log.Fatalf("error:\tsshd failed to listen on port %d\t%v", portnumber, err)
 	}
 
 	// Accept all connections
-	log.Printf("info:|sshd listening on port %d", portnumber)
+	log.Printf("info:\tsshd listening on port %d", portnumber)
 	for {
 		tcpConn, err := listener.Accept()
 		// CLOSE_WAIT issue. Adding a timeout:
@@ -184,7 +186,7 @@ func main() {
 		// This is important, otherwise: CLOSE_WAITs
 		defer tcpConn.Close()
 		if err != nil {
-			log.Printf("error:|tcpConn failed to accept incoming connection|%v", err)
+			log.Printf("error:\ttcpConn failed to accept incoming connection\t%v", err)
 			continue
 
 		}
@@ -197,14 +199,14 @@ func main() {
 		sshConn, chans, reqs, err := ssh.NewServerConn(tcpConn, config)
 		if err != nil {
 				if err == io.EOF {
-					log.Printf("error:|%s|sshConn handshaking terminated|%v", tcpConn.RemoteAddr().String(), err)
+					log.Printf("error:\t%s\tsshConn handshaking terminated\t%v", tcpConn.RemoteAddr().String(), err)
 				} else {
-					log.Printf("error:|%s|sshConn failed to handshake|%v", tcpConn.RemoteAddr().String(), err)
+					log.Printf("error:\t%s\tsshConn failed to handshake\t%v", tcpConn.RemoteAddr().String(), err)
 				}
 				return
 }
 
-		log.Printf("error:|!!!New SSH connection from %s (%s)!!!",
+		log.Printf("error:\t!!!New SSH connection from %s (%s)!!!",
 			sshConn.RemoteAddr(), sshConn.ClientVersion())
 		// Discard all global out-of-band Requests
 		go ssh.DiscardRequests(reqs)
@@ -228,7 +230,7 @@ func handleChannel(newChannel ssh.NewChannel) {
 	// channel types.
 	if t := newChannel.ChannelType(); t != "session" {
 		newChannel.Reject(ssh.UnknownChannelType,
-			fmt.Sprintf("error:|unknown channel type"))
+			fmt.Sprintf("error:\tunknown channel type"))
 		return
 	}
 
@@ -236,7 +238,7 @@ func handleChannel(newChannel ssh.NewChannel) {
 	// request for another logical connection
 	connection, requests, err := newChannel.Accept()
 	if err != nil {
-		log.Printf("error:|could not accept channel (%v)", err)
+		log.Printf("error:\tcould not accept channel (%v)", err)
 		return
 	}
 
@@ -250,13 +252,13 @@ func handleChannel(newChannel ssh.NewChannel) {
 		connection.Close()
 		_, err := bash.Process.Wait()
 		if err != nil {
-			log.Printf("error:|failed to exit /bin/false (%v)", err)
+			log.Printf("error:\tfailed to exit /bin/false (%v)", err)
 		}
-		log.Printf("info:|Session closed")
+		log.Printf("info:\tSession closed")
 	}
 
 	// Allocate a terminal for this channel
-	log.Print("info:|creating pty...")
+	log.Print("info:\tcreating pty...")
 	bashf, err := pty.Start(bash)
 	if err != nil {
 		// log.Printf("Could not start pty (%s)", err)
